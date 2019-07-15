@@ -40,11 +40,12 @@ jobs:
     timeoutInMinutes: 5
 
   # Compile webrtc.lib
-  - task: MSBuild@1
+  - task: VSBuild@1
     displayName: 'Build webrtc.lib ($(buildTriple))'
     inputs:
       solution: '$(projectRoot)WebRtc.${{parameters.buildPlatform}}.Native.Builder/WebRtc.${{parameters.buildPlatform}}.Native.Builder.vcxproj'
-      msbuildVersion: '15.0'
+      vsVersion: '16.0'
+      clean: true
       msbuildArchitecture: x64
       platform: ${{parameters.buildArch}}
       configuration: ${{parameters.buildConfig}}
@@ -153,11 +154,12 @@ jobs:
     timeoutInMinutes: 10
 
   # Do the actual build
-  - task: MSBuild@1
+  - task: VSBuild@1
     displayName: 'Build Org.WebRTC WinRT wrappers ($(buildTriple))'
     inputs:
       solution: '$(projectRoot)Org.WebRtc.Universal/Org.WebRtc.vcxproj'
-      msbuildVersion: '15.0'
+      vsVersion: '16.0'
+      clean: true
       msbuildArchitecture: x64
       platform: ${{parameters.buildArch}}
       configuration: ${{parameters.buildConfig}}
