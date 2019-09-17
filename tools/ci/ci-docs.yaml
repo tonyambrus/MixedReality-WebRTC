@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License. See LICENSE in the project root for license information.
+
 # MixedReality-WebRTC build pipeline for documentation CI
 # Build the user manual and API reference from the sources
 
@@ -22,4 +25,4 @@ name: ci-docs-$(SourceBranchName)-$(Date:yyyyMMdd)-$(Rev:r)
 jobs:
 - template: templates/jobs-docs.yaml
   parameters:
-    buildAgent: 'Hosted Windows 2019 with VS2019' # windows-2019
+    buildAgent: 'Hosted VS2017' # vs2017-win2016

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.MixedReality.WebRTC
 {
@@ -97,9 +98,17 @@ namespace Microsoft.MixedReality.WebRTC
         /// <seealso cref="SendMessage(byte[])"/>
         public event Action<byte[]> MessageReceived;
 
-        internal DataChannel(PeerConnection peerConnection, int id, string label, bool ordered, bool reliable)
+        /// <summary>
+        /// GC handle keeping the internal delegates alive while they are registered
+        /// as callbacks with the native code.
+        /// </summary>
+        private GCHandle _handle;
+
+        internal DataChannel(PeerConnection peer, GCHandle handle,
+            int id, string label, bool ordered, bool reliable)
         {
-            PeerConnection = peerConnection;
+            _handle = handle;
+            PeerConnection = peer;
             ID = id;
             Label = label;
             Ordered = ordered;
@@ -122,6 +131,7 @@ namespace Microsoft.MixedReality.WebRTC
             State = ChannelState.Closing;
             PeerConnection.RemoveDataChannel(this);
             State = ChannelState.Closed;
+            _handle.Free();
             GC.SuppressFinalize(this);
         }
 
@@ -129,7 +139,7 @@ namespace Microsoft.MixedReality.WebRTC
         /// Send a message through the data channel.
         /// </summary>
         /// <param name="message">The message to send to the remote peer.</param>
-        /// <exception cref="InvalidOperationException">The peer connection is not initialized.</exception>
+        /// <exception xref="InvalidOperationException">The peer connection is not initialized.</exception>
         /// <seealso cref="PeerConnection.InitializeAsync"/>
         /// <seealso cref="PeerConnection.Initialized"/>
         public void SendMessage(byte[] message)

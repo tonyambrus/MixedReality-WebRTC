@@ -78,7 +78,7 @@ namespace Microsoft.MixedReality.WebRTC.Unity
         /// <returns>stringified server information</returns>
         public override string ToString()
         {
-            return string.Format("{0}: {1}", Type.ToString().ToLower(), Uri);
+            return string.Format("{0}:{1}", Type.ToString().ToLowerInvariant(), Uri);
         }
     }
 
@@ -216,7 +216,7 @@ namespace Microsoft.MixedReality.WebRTC.Unity
         /// Enumerate the video capture devices available as a WebRTC local video feed source.
         /// </summary>
         /// <returns>The list of local video capture devices available to WebRTC.</returns>
-        public static Task<List<WebRTC.PeerConnection.VideoCaptureDevice>> GetVideoCaptureDevicesAsync()
+        public static Task<List<VideoCaptureDevice>> GetVideoCaptureDevicesAsync()
         {
             return WebRTC.PeerConnection.GetVideoCaptureDevicesAsync();
         }
@@ -426,10 +426,17 @@ namespace Microsoft.MixedReality.WebRTC.Unity
         private Task InitializePluginAsync(CancellationToken token)
         {
             Debug.Log("Initializing WebRTC plugin...");
-            _nativePeer.Servers = IceServers.Select(i => i.ToString()).ToList();
-            _nativePeer.UserName = IceUsername;
-            _nativePeer.Credentials = IceCredential;
-            return _nativePeer.InitializeAsync(token).ContinueWith((initTask) =>
+            var config = new PeerConnectionConfiguration();
+            foreach (var server in IceServers)
+            {
+                config.IceServers.Add(new IceServer
+                {
+                    Urls = { server.ToString() },
+                    TurnUserName = IceUsername,
+                    TurnPassword = IceCredential
+                });
+            }
+            return _nativePeer.InitializeAsync(config, token).ContinueWith((initTask) =>
             {
                 token.ThrowIfCancellationRequested();
 
@@ -462,6 +469,8 @@ namespace Microsoft.MixedReality.WebRTC.Unity
         {
             Debug.Log("WebRTC plugin initialized successfully.");
 
+            _nativePeer.RenegotiationNeeded += Peer_RenegotiationNeeded;
+
             // Once the peer is initialized, it becomes publicly accessible.
             // This prevent scripts from accessing it before it is initialized,
             // or worse before it is constructed in Awake(). This happens because
@@ -472,6 +481,16 @@ namespace Microsoft.MixedReality.WebRTC.Unity
 
             Signaler.OnPeerInitialized(this);
             OnInitialized.Invoke();
+        }
+
+        private void Peer_RenegotiationNeeded()
+        {
+            // If already connected, update the connection on the fly.
+            // If not, wait for user action and don't automatically connect.
+            if (_nativePeer.IsConnected)
+            {
+                _nativePeer.CreateOffer();
+            }
         }
 
         /// <summary>

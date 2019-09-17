@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License. See LICENSE in the project root for license information.
 
 param(
     [Parameter(Mandatory)]
@@ -22,7 +24,6 @@ enum BuildArch {
     x86
     x64
     ARM
-    ARM64
 }
 
 enum BuildPlatform {
@@ -124,11 +125,33 @@ function Build-UWPWrappers
         [Parameter(Mandatory)]
         [string]$BuildArch
     )
-    & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" `
-        /target:Build /maxCpuCount:4 /property:Configuration=$BuildConfig /property:Platform=$BuildArch `
+
+    # Restore NuGet packages
+    # This requires a separate step because Org.WebRtc.Universal uses a packages.config, which is not
+    # supported by the /restore option of msbuild.
+    nuget restore -NonInteractive "..\..\external\webrtc-uwp-sdk\webrtc\windows\projects\msvc\Org.WebRtc.Universal\packages.config" `
+        -SolutionDirectory "..\..\external\webrtc-uwp-sdk\webrtc\windows\solutions" -Verbosity detailed
+
+    # Find MSBuild.exe
+    $msbuildTool = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
+    if (-not (Test-Path $msbuildTool))
+    {
+        $msbuildTool = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe"
+        if (-not (Test-Path $msbuildTool))
+        {
+            Write-Error "Cannot find MSBuild.exe from Visual Studio 2019 install path"
+            exit 1
+        }
+    }
+
+    # Compile
+    & $msbuildTool `
+        /target:Build /property:Configuration=$BuildConfig /property:Platform=$BuildArch `
         "..\..\external\webrtc-uwp-sdk\webrtc\windows\projects\msvc\Org.WebRtc.Universal\Org.WebRtc.vcxproj"
 }
 
+# Try to apply a git patch, or check that it is already applied.
+# Terminate the script if the patch is not applied already and failed to apply.
 function Apply-GitPatch
 {
     param(
@@ -148,7 +171,7 @@ function Apply-GitPatch
         git apply --reverse --check $PatchPath
         if (-not $?)
         {
-            Write-Host "Patch $PatchPath not applied, and failed to apply."
+            Write-Error "Patch $PatchPath not applied, and failed to apply."
             exit 1
         }
     }
@@ -160,12 +183,13 @@ function Apply-GitPatch
 # Build
 #
 
+# Check Windows SDKs are installed
 Test-WindowsSDK
 
-# Patch libyuv clang compile (see #157 on WebRTC UWP project)
-Apply-GitPatch ..\..\external\webrtc-uwp-sdk\webrtc\xplatform\libyuv\ ..\..\..\..\..\tools\patches\libyuv_win_msvc_157.patch
-
+# Build webrtc.lib
 Build-CoreWebRTC -BuildConfig $BuildConfig -BuildArch $BuildArch -ScriptPlatform $ScriptPlatform
+
+# Build Org.webrtc.dll/winmd
 if ($BuildPlatform -eq "UWP")
 {
     Build-UWPWrappers -BuildConfig $BuildConfig -BuildArch $BuildArch

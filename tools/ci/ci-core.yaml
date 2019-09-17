@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License. See LICENSE in the project root for license information.
+
 # MixedReality-WebRTC build pipeline for CI
 # Build the core WebRTC implementation and the UWP wrappers
 
@@ -9,26 +12,26 @@ trigger: none
 pr: none
 
 # Give a unique name to the build each time it runs
-name: core-$(SourceBranchName)-$(Date:yyyyMMdd)-$(Rev:r)
+name: ci-core-$(SourceBranchName)-$(Date:yyyyMMdd)-$(Rev:r)
 
 jobs:
 - template: templates/jobs-libwebrtc.yaml
   parameters:
-    buildAgent: 'Hosted Windows 2019 with VS2019' # windows-2019
+    buildAgent: 'Hosted VS2017' # vs2017-win2016
     buildPlatform: 'Win32'
     buildArch: 'x64'
     buildConfig: 'Release'
     skipUwpWrappers: true
 - template: templates/jobs-libwebrtc.yaml
   parameters:
-    buildAgent: 'Hosted Windows 2019 with VS2019' # windows-2019
+    buildAgent: 'Hosted VS2017' # vs2017-win2016
     buildPlatform: 'UWP'
     buildArch: 'x64'
     buildConfig: 'Release'
     skipUwpWrappers: true
 # - template: templates/jobs-libwebrtc.yaml
 #   parameters:
-#     buildAgent: 'Hosted Windows 2019 with VS2019' # windows-2019
+#     buildAgent: 'Hosted VS2017' # vs2017-win2016
 #     buildPlatform: 'UWP'
 #     buildArch: 'ARM'
 #     buildConfig: 'Release'

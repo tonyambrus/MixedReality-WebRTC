@@ -87,6 +87,20 @@ namespace TestAppUwp.Video
         }
 
         /// <summary>
+        /// Clear the bridge of any pending frames and reset for reuse.
+        /// </summary>
+        public void Clear()
+        {
+            lock (_deferralLock)
+            {
+                _request = null;
+                _deferral?.Complete();
+                _deferral = null;
+            }
+            _frameQueue.Clear();
+        }
+
+        /// <summary>
         /// Handle an incoming raw video frame by either enqueuing it for serving
         /// a later request, or immediately serving a pending request.
         /// </summary>
@@ -158,8 +172,9 @@ namespace TestAppUwp.Video
             sample.Duration = TimeSpan.FromSeconds(1.0 / 30.0);
 
             // Copy the frame data into the sample's buffer
-            frameStorage.Buffer.CopyTo(0, sample.Buffer, 0, (int)frameStorage.Capacity);
-            sample.Buffer.Length = (uint)frameStorage.Capacity; // Somewhat surprisingly, this is not automatic
+            uint copySize = Math.Min((uint)frameStorage.Capacity, byteSize);
+            frameStorage.Buffer.CopyTo(0, sample.Buffer, 0, (int)copySize);
+            sample.Buffer.Length = copySize; // Somewhat surprisingly, this is not automatic
 
             // Recycle the frame storage itself
             _frameQueue.RecycleStorage(frameStorage);

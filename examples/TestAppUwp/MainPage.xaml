@@ -5,6 +5,8 @@
     xmlns:local="using:TestAppUwp"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:winmc="using:Windows.Media.Capture"
+    xmlns:webrtc="using:Microsoft.MixedReality.WebRTC"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Page.Resources>
@@ -14,13 +16,46 @@
                 <TextBlock Text="{x:Bind Label}" Margin="24,0,0,0" VerticalAlignment="Center" />
             </StackPanel>
         </DataTemplate>
-        <DataTemplate x:Key="VideoCaptureDeviceTemplate" x:DataType="local:VideoCaptureDevice">
+        <DataTemplate x:Key="VideoCaptureDeviceTemplate" x:DataType="local:VideoCaptureDeviceInfo">
             <StackPanel Orientation="Horizontal">
                 <SymbolIcon Symbol="{x:Bind Symbol}" Margin="0,0,12,0" />
                 <StackPanel Orientation="Vertical" AutomationProperties.Name="{x:Bind DisplayName}">
                     <TextBlock Text="{x:Bind DisplayName}" VerticalAlignment="Center" />
                     <TextBlock Text="{x:Bind Id}" VerticalAlignment="Center" FontSize="9px" />
                 </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="VideoProfileTemplate" x:DataType="winmc:MediaCaptureVideoProfile">
+            <TextBlock Text="{x:Bind Id}" VerticalAlignment="Center"/>
+        </DataTemplate>
+        <DataTemplate x:Key="RecordMediaDescTemplate" x:DataType="winmc:MediaCaptureVideoProfileMediaDescription">
+            <StackPanel Orientation="Horizontal">
+                <SymbolIcon Symbol="WebCam" Margin="0,0,12,0" />
+                <TextBlock VerticalAlignment="Center" >
+                    <Run Text="{x:Bind Width}" />
+                    <Run> x </Run>
+                    <Run Text="{x:Bind Height}" />
+                    <Run> @ </Run>
+                    <Run Text="{x:Bind FrameRate}" />
+                    <Run> FPS (</Run>
+                    <Run Text="{x:Bind Subtype}" />
+                    <Run>)</Run>
+                </TextBlock>
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="VideoCaptureFormatTemplate" x:DataType="webrtc:VideoCaptureFormat">
+            <StackPanel Orientation="Horizontal">
+                <SymbolIcon Symbol="Video" Margin="0,0,12,0" />
+                <TextBlock VerticalAlignment="Center" >
+                    <Run Text="{x:Bind width}" />
+                    <Run> x </Run>
+                    <Run Text="{x:Bind height}" />
+                    <Run> @ </Run>
+                    <Run Text="{x:Bind framerate}" />
+                    <Run> FPS (</Run>
+                    <Run Text="{x:Bind fourcc}" />
+                    <Run>)</Run>
+                </TextBlock>
             </StackPanel>
         </DataTemplate>
     </Page.Resources>
@@ -40,17 +75,17 @@
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Signaling server" VerticalAlignment="Center" Style="{StaticResource BaseTextBlockStyle}" Margin="0,0,0,6" Grid.ColumnSpan="2"/>
                     <TextBlock Style="{StaticResource BodyTextBlockStyle}" FontStyle="Italic" Grid.Row="1" Grid.ColumnSpan="2">
                     The signaling server is used to discover a peer to connect to. This app uses <Hyperlink NavigateUri="https://github.com/bengreenier/node-dss">node-dss</Hyperlink>.
                     </TextBlock>
                     <TextBlock Text="Server address" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Grid.Row="2"/>
-                    <TextBox Name="dssServer" HorizontalAlignment="Left" PlaceholderText="http://server:port/" Text="http://localhost:3000/" VerticalAlignment="Center" Width="285" TextChanged="StunServerTextChanged" Grid.Row="2" Grid.Column="1" Margin="0,6,0,6"/>
+                    <TextBox Name="dssServer" HorizontalAlignment="Left" PlaceholderText="http://server:port/" Text="http://localhost:3000/" VerticalAlignment="Center" Width="285" Grid.Row="2" Grid.Column="1" Margin="0,6,0,6"/>
                     <TextBlock Text="Poll delay" VerticalAlignment="Center" Grid.Row="3" HorizontalAlignment="Right" Margin="0,0,12,0"/>
                     <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="1" Margin="0,6,0,6">
-                        <TextBox x:Name="dssPollTimeMs" MinWidth="100" Text="200" TextAlignment="Right"/>
+                        <TextBox x:Name="dssPollTimeMs" MinWidth="100" Text="500" TextAlignment="Right"/>
                         <TextBlock Text="ms" VerticalAlignment="Center" Margin="4,0,0,0" />
                     </StackPanel>
                     <TextBlock Text="Local peer UID" VerticalAlignment="Center" Grid.Row="4" HorizontalAlignment="Right" Margin="0,0,12,0" Height="20"  />
@@ -58,14 +93,13 @@
                     <TextBlock Text="Remote peer UID" VerticalAlignment="Center" Margin="0,0,12,0" Grid.Row="5" HorizontalAlignment="Right"  />
                     <TextBox x:Name="remotePeerUidTextBox" MinWidth="250" Grid.Row="5" Grid.Column="1" Margin="0,6,0,6" />
                     <!--<SymbolIcon Symbol="Setting" />-->
-                    <Button x:Name="pollDssButton" Content="Start polling" HorizontalAlignment="Left" Margin="3,12,0,0" VerticalAlignment="Center" RenderTransformOrigin="0.511,0.634" Width="125" Click="PollDssButtonClicked" Grid.Row="6" Grid.ColumnSpan="2"/>
-                    <Button x:Name="sendSetPeerButton" Content="Send 'set-peer'" Grid.Row="6" Grid.Column="1" Margin="0,12,0,0" Width="125" Click="SendSetPeerButton_Click"/>
+                    <Button x:Name="pollDssButton" Content="Start polling" HorizontalAlignment="Left" Margin="0,12,0,0" VerticalAlignment="Center" Width="125" Click="PollDssButtonClicked" Grid.Row="6" Grid.ColumnSpan="2"/>
                     <!--<ListView x:Name="NavLinksList" Margin="0,12,0,0" SelectionMode="None" Grid.Row="1" VerticalAlignment="Stretch"
                     ItemClick="NavLinksList_ItemClick" IsItemClickEnabled="True"
                     ItemsSource="{x:Bind NavLinks}" ItemTemplate="{StaticResource NavLinkItemTemplate}"/>-->
                 </Grid>
             </PivotItem>
-            <PivotItem Header="Peers">
+            <PivotItem Header="Connection">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -75,18 +109,39 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="350px"/>
-                        <ColumnDefinition Width="12px"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="12px"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="STUN server" FontWeight="Bold" Grid.ColumnSpan="2" />
                     <TextBlock Text="The STUN server is used to establish a peer connection through NATs." FontStyle="Italic" Grid.ColumnSpan="2" Grid.Row="1" Margin="12,6,0,0" />
-                    <TextBox Name="stunServer" HorizontalAlignment="Left" PlaceholderText="address:port (without prefix)" Text="stun.l.google.com:19302" VerticalAlignment="Center" Width="300" TextChanged="StunServerTextChanged" Grid.Row="2" Margin="12,6,0,6"/>
-                    <TextBlock Text="Discovered peers" FontWeight="Bold" Grid.ColumnSpan="2" Grid.Row="3" Margin="0,12,0,0" FontFamily="Segoe UI" />
-                    <ListView Grid.Row="4" Margin="12,0,0,0" ItemsSource="{x:Bind NavLinks}" ItemTemplate="{StaticResource NavLinkItemTemplate}" />
+                    <TextBox Name="stunServer" HorizontalAlignment="Left" PlaceholderText="address:port (without prefix)" Text="stun.l.google.com:19302" VerticalAlignment="Center" Width="300" Grid.Row="2" Margin="12,6,0,6"/>
+                    <!--<TextBlock Text="Discovered peers" FontWeight="Bold" Grid.ColumnSpan="2" Grid.Row="3" Margin="0,12,0,0" FontFamily="Segoe UI" />
+                    <ListView Grid.Row="4" Margin="12,0,0,0" ItemsSource="{x:Bind NavLinks}" ItemTemplate="{StaticResource NavLinkItemTemplate}" />-->
                     <Button Name="createOfferButton" IsEnabled="False" Content="Create offer" HorizontalAlignment="Left" VerticalAlignment="Center" RenderTransformOrigin="0.511,0.634" Click="CreateOfferButtonClicked" Width="125" Grid.Row="5" Margin="0,6,0,6"/>
-                    <TextBlock Text="Video capture devices" FontWeight="Bold" Grid.Row="3" Margin="0,12,0,0" FontFamily="Segoe UI" Grid.Column="2" />
-                    <ListView Grid.Row="4" Grid.Column="2" ItemsSource="{x:Bind VideoCaptureDevices}" ItemTemplate="{StaticResource VideoCaptureDeviceTemplate}" MinHeight="120" MinWidth="120" />
+                    <TextBlock Text="Video capture devices" FontWeight="Bold" Grid.Row="3" Margin="0,12,0,0" FontFamily="Segoe UI" Grid.Column="0" />
+                    <Grid Grid.Row="4" Grid.Column="0" HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ListView x:Name="VideoCaptureDeviceList" Grid.Row="0" ItemsSource="{x:Bind VideoCaptureDevices}" ItemTemplate="{StaticResource VideoCaptureDeviceTemplate}" MinHeight="120" MinWidth="120" />
+                        <TextBlock Grid.Row="1" Text="Preferred Video codec" FontWeight="Bold" Margin="0,12,0,0" FontFamily="Segoe UI" />
+                        <TextBox x:Name="PreferredVideoCodec" Grid.Row="2" Text="H264" />
+                        <TextBlock Grid.Row="3" Text="Video profile" FontWeight="Bold" Margin="0,12,0,0" FontFamily="Segoe UI" />
+                        <ComboBox x:Name="KnownVideoProfileKindComboBox" Margin="0,10,0,0" Grid.Row="4" MaxWidth="400" MinWidth="200"/>
+                        <ComboBox x:Name="VideoProfileComboBox" ItemsSource="{x:Bind VideoProfiles}" ItemTemplate="{StaticResource VideoProfileTemplate}" Margin="0,10,0,0" Grid.Row="5" MaxWidth="400" MinWidth="200"/>
+                        <ListView x:Name="RecordMediaDescList" Grid.Row="6" ItemsSource="{x:Bind RecordMediaDescs}" ItemTemplate="{StaticResource RecordMediaDescTemplate}" MinHeight="120" MinWidth="120" />
+                        <ListView x:Name="VideoCaptureFormatList" Grid.Row="6" ItemsSource="{x:Bind VideoCaptureFormats}" ItemTemplate="{StaticResource VideoCaptureFormatTemplate}" MinHeight="120" MinWidth="120" />
+                    </Grid>
                 </Grid>
             </PivotItem>
             <PivotItem Header="Channels">
@@ -123,12 +178,13 @@
                         <TextBlock x:Name="remoteVideoStateText" Text="State:" Grid.Column="1" />
                     </Grid>
                     <Border Grid.Row="1" BorderBrush="#66000000" BorderThickness="2,2,2,2" Background="#AAFFFFFF">
-                        <StackPanel>
-                            <MediaPlayerElement x:Name="localVideo" Height="480" Width="640" />
-                            <!--<MediaTransportControls x:Name="localVideoControls" />-->
-                        </StackPanel>
+                        <MediaPlayerElement x:Name="localVideo" Height="480" Width="640" />
                     </Border>
-                    <Border Grid.Row="1"  BorderBrush="#66000000" BorderThickness="2,2,2,2" Grid.Column="2" Background="#AAFFFFFF">
+                    <Grid Grid.Row="1">
+                        <Rectangle Width="125" Height="32" VerticalAlignment="Bottom" Margin="0,0,0,20" Fill="#CCFFFFFF" />
+                        <Button Grid.Row="1" Name="startLocalVideo" IsEnabled="False" Content="Start local video" VerticalAlignment="Bottom" Click="StartLocalVideoClicked" Width="125" HorizontalAlignment="Center" Margin="0,0,0,20" Height="32" />
+                    </Grid>
+                    <Border Grid.Row="1" BorderBrush="#66000000" BorderThickness="2,2,2,2" Grid.Column="2" Background="#AAFFFFFF">
                         <MediaPlayerElement x:Name="remoteVideo" Height="480" Width="640" />
                     </Border>
                     <Grid Grid.Row="2">
@@ -155,7 +211,14 @@
                         <TextBlock x:Name="remoteSkipText" Text="Skip :" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2" />
                         <TextBlock x:Name="remoteLateText" Text="Late :" Grid.Column="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                     </Grid>
-                    <Button Name="startLocalVideo" IsEnabled="False" Content="Start local video" VerticalAlignment="Center" Click="StartLocalVideoClicked" Width="125" HorizontalAlignment="Center" Grid.Row="3"/>
+                    <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="2">
+                        <TextBlock Text="ICE state : " VerticalAlignment="Top" />
+                        <TextBlock x:Name="iceStateText" Text="-" VerticalAlignment="Top" Margin="6,0,0,0" />
+                        <TextBlock Text="Remote Audio Channels : " VerticalAlignment="Top" Margin="20,0,0,0" />
+                        <TextBlock x:Name="remoteAudioChannelCount" Text="-" VerticalAlignment="Top" Margin="6,0,0,0" />
+                        <TextBlock Text="Sample rate : " VerticalAlignment="Top" Margin="20,0,0,0" />
+                        <TextBlock x:Name="remoteAudioSampleRate" Text="-" VerticalAlignment="Top" Margin="6,0,0,0" />
+                    </StackPanel>
                     <StackPanel Orientation="Horizontal" Grid.Row="3">
                         <TextBlock Text="Data channel" VerticalAlignment="Bottom" FontWeight="Bold" />
                         <TextBlock x:Name="sessionStatusText" Text="(not connected)" VerticalAlignment="Bottom" Margin="6,0,0,0" />

@@ -39,6 +39,7 @@
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
 #include "api/audio_codecs/builtin_audio_encoder_factory.h"
 #include "api/datachannelinterface.h"
+#include "api/mediaconstraintsinterface.h"
 #include "api/mediastreaminterface.h"
 #include "api/peerconnectioninterface.h"
 #include "api/video/i420_buffer.h"
@@ -60,13 +61,15 @@
 // UWP wrappers
 #if defined(WINUWP)
 #include <winrt/windows.applicationmodel.core.h>
-#include "sdk/windows/wrapper/impl_org_webRtc_EventQueue.h"
-#include "sdk/windows/wrapper/impl_org_webRtc_VideoCapturer.h"
-#include "sdk/windows/wrapper/impl_org_webRtc_VideoDeviceInfo.h"
-#include "sdk/windows/wrapper/impl_org_webRtc_WebRtcFactory.h"
-#include "sdk/windows/wrapper/impl_org_webRtc_WebRtcFactoryConfiguration.h"
-#include "sdk/windows/wrapper/impl_org_webRtc_WebRtcLib.h"
-#include "sdk/windows/wrapper/impl_org_webRtc_WebRtcLibConfiguration.h"
+#include "impl_org_webRtc_EventQueue.h"
+#include "impl_org_webRtc_VideoCapturer.h"
+#include "impl_org_webRtc_VideoCapturerCreationParameters.h"
+#include "impl_org_webRtc_VideoDeviceInfo.h"
+#include "impl_org_webRtc_VideoFormat.h"
+#include "impl_org_webRtc_WebRtcFactory.h"
+#include "impl_org_webRtc_WebRtcFactoryConfiguration.h"
+#include "impl_org_webRtc_WebRtcLib.h"
+#include "impl_org_webRtc_WebRtcLibConfiguration.h"
 #endif
 
 #pragma warning(pop)

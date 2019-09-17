@@ -20,11 +20,12 @@ tests/Microsoft.MixedReality.WebRTC.Tests/obj
 # UWP packages
 /examples/TestAppUwp/AppPackages
 
-# Nuget C++ packages
+# Nuget packages
 /packages
 
 # Unity artifacts
 /libs/Microsoft.MixedReality.WebRTC.Unity/Assets/Plugins
+/libs/Microsoft.MixedReality.WebRTC.Unity/build
 /libs/Microsoft.MixedReality.WebRTC.Unity/Builds
 /libs/Microsoft.MixedReality.WebRTC.Unity/Library
 /libs/Microsoft.MixedReality.WebRTC.Unity/Temp
@@ -33,9 +34,9 @@ tests/Microsoft.MixedReality.WebRTC.Tests/obj
 /libs/Microsoft.MixedReality.WebRTC.Unity/*.csproj
 /libs/Microsoft.MixedReality.WebRTC.Unity/*.sln
 
-# Unity packages
-/libs/Microsoft.MixedReality.WebRTC.Unity/Assets/TextMesh Pro**
-/libs/Microsoft.MixedReality.WebRTC.Unity/Assets/MixedRealityToolkit**
+# Unity third-party dependencies
+/libs/Microsoft.MixedReality.WebRTC.Unity/Assets/MixedRealityToolkit*
+/libs/Microsoft.MixedReality.WebRTC.Unity/Assets/TextMesh Pro*
 
 # Certificates
 *.pfx
@@ -44,3 +45,8 @@ tests/Microsoft.MixedReality.WebRTC.Tests/obj
 # DocFX limitation/bug
 xdoc
 xdoc.meta
+
+# For testing, NUnit needs the native DLL to be avaiable in the same directory as
+# the tested assembly for DllImport. There is probably a more elegant way but...
+/tests/Microsoft.MixedReality.WebRTC.Tests/Microsoft.MixedReality.WebRTC.Native.dll
+/tests/Microsoft.MixedReality.WebRTC.Tests/Microsoft.MixedReality.WebRTC.Native.pdb

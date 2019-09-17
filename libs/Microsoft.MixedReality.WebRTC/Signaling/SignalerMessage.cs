@@ -38,6 +38,24 @@ namespace Microsoft.MixedReality.WebRTC
         }
 
         /// <summary>
+        /// Convert a message type from <see xref="string"/> to <see cref="WireMessageType"/>.
+        /// </summary>
+        /// <param name="stringType">The message type as <see xref="string"/>.</param>
+        /// <returns>The message type as a <see cref="WireMessageType"/> object.</returns>
+        public static WireMessageType WireMessageTypeFromString(string stringType)
+        {
+            if (string.Equals(stringType, "offer", StringComparison.OrdinalIgnoreCase))
+            {
+                return WireMessageType.Offer;
+            }
+            else if (string.Equals(stringType, "answer", StringComparison.OrdinalIgnoreCase))
+            {
+                return WireMessageType.Answer;
+            }
+            throw new ArgumentException($"Unkown signaler message type '{stringType}'");
+        }
+
+        /// <summary>
         /// The message type
         /// </summary>
         public WireMessageType MessageType;
@@ -51,14 +69,18 @@ namespace Microsoft.MixedReality.WebRTC
         /// The data separator needed for proper ICE serialization
         /// </summary>
         public string IceDataSeparator;
+    }
 
+    public static class WireMessageTypeExtensions
+    {
         /// <summary>
-        /// The target id to which we send messages
+        /// Convert a message type from <see cref="SignalerMessage.WireMessageType"/> to <see xref="string"/>.
         /// </summary>
-        /// <remarks>
-        /// This is expected to be set when <see cref="ISignaler.SendMessageAsync(SignalerMessage)"/> is called
-        /// </remarks>
-        [NonSerialized]
-        public string TargetId;
+        /// <param name="type">The message type as <see cref="SignalerMessage.WireMessageType"/>.</param>
+        /// <returns>The message type as a <see xref="string"/> object.</returns>
+        public static string ToString(this SignalerMessage.WireMessageType type)
+        {
+            return type.ToString().ToLowerInvariant();
+        }
     }
 }
