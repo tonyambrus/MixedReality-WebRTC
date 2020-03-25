@@ -64,7 +64,7 @@ namespace Microsoft.MixedReality.WebRTC.Unity
                 {
                     return WireMessageType.Answer;
                 }
-                throw new ArgumentException($"Unkown signaler message type '{stringType}'");
+                throw new ArgumentException($"Unknown signaler message type '{stringType}'");
             }
 
             /// <summary>
@@ -91,6 +91,11 @@ namespace Microsoft.MixedReality.WebRTC.Unity
         public event Action<Message> OnMessage;
         public event Action<Exception> OnFailure;
 
+        protected void NotifyConnect() => OnConnect?.Invoke();
+        protected void NotifyDisconnect() => OnDisconnect?.Invoke();
+        protected void NotifyMessage(Message m) => OnMessage?.Invoke(m);
+        protected void NotifyFailure(Exception e) => OnFailure?.Invoke(e);
+
 #pragma warning restore 67
 
         /// <summary>
@@ -102,6 +107,8 @@ namespace Microsoft.MixedReality.WebRTC.Unity
         /// but not necessarily delivered.
         /// </returns>
         public abstract Task SendMessageAsync(Message message);
+
+        public virtual bool SupportsRawMessages => false;
 
         #endregion
 
@@ -120,7 +127,7 @@ namespace Microsoft.MixedReality.WebRTC.Unity
         /// initializing, to subscribe to signaling-related events.
         /// </summary>
         /// <param name="peer">The peer connection to attach to</param>
-        public void OnPeerInitialized(PeerConnection peer)
+        public virtual void OnPeerInitialized(PeerConnection peer)
         {
             PeerConnection = peer;
             _nativePeer = peer.Peer;
@@ -180,20 +187,20 @@ namespace Microsoft.MixedReality.WebRTC.Unity
         /// <param name="candidate"></param>
         /// <param name="sdpMlineIndex"></param>
         /// <param name="sdpMid"></param>
-        protected abstract void OnIceCandiateReadyToSend(string candidate, int sdpMlineIndex, string sdpMid);
+        public abstract void OnIceCandiateReadyToSend(string candidate, int sdpMlineIndex, string sdpMid);
 
         /// <summary>
         /// Callback fired when a local SDP offer has been generated and is ready to
         /// be sent to the remote peer by the signaling object.
         /// </summary>
         /// <param name="offer">The SDP offer message to send.</param>
-        protected abstract void OnSdpOfferReadyToSend(string offer);
+        public abstract void OnSdpOfferReadyToSend(string offer);
 
         /// <summary>
         /// Callback fired when a local SDP answer has been generated and is ready to
         /// be sent to the remote peer by the signaling object.
         /// </summary>
         /// <param name="answer">The SDP answer message to send.</param>
-        protected abstract void OnSdpAnswerReadyToSend(string answer);
+        public abstract void OnSdpAnswerReadyToSend(string answer);
     }
 }

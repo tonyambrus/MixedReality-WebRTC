@@ -172,7 +172,10 @@ namespace Microsoft.MixedReality.WebRTC.Unity
             {
                 // Enqueue invoking the unity event from the main Unity thread, so that listeners
                 // can directly access Unity objects from their handler function.
-                _mainThreadWorkQueue.Enqueue(() => VideoStreamStarted.Invoke());
+                _mainThreadWorkQueue.Enqueue(() =>
+                {
+                    VideoStreamStarted.Invoke();
+                });
             }
         }
 

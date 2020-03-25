@@ -114,7 +114,7 @@ namespace Microsoft.MixedReality.WebRTC.Unity
         /// <param name="candidate"></param>
         /// <param name="sdpMlineIndex"></param>
         /// <param name="sdpMid"></param>
-        protected override void OnIceCandiateReadyToSend(string candidate, int sdpMlineIndex, string sdpMid)
+        public override void OnIceCandiateReadyToSend(string candidate, int sdpMlineIndex, string sdpMid)
         {
             StartCoroutine(PostToServer(new Message()
             {
@@ -130,7 +130,7 @@ namespace Microsoft.MixedReality.WebRTC.Unity
         /// </summary>
         /// <param name="type"></param>
         /// <param name="sdp"></param>
-        protected override void OnSdpOfferReadyToSend(string offer)
+        public override void OnSdpOfferReadyToSend(string offer)
         {
             StartCoroutine(PostToServer(new Message()
             {
@@ -145,7 +145,7 @@ namespace Microsoft.MixedReality.WebRTC.Unity
         /// </summary>
         /// <param name="type"></param>
         /// <param name="sdp"></param>
-        protected override void OnSdpAnswerReadyToSend(string answer)
+        public override void OnSdpAnswerReadyToSend(string answer)
         {
             StartCoroutine(PostToServer(new Message()
             {

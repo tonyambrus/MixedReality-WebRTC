@@ -498,7 +498,7 @@ namespace Microsoft.MixedReality.WebRTC.Unity
                             errorMessage.Append($"AggregationException: {ae.Message}\n");
                             ex = ae.InnerException;
                         }
-                        errorMessage.Append($"Exception: {ex.Message}");
+                        errorMessage.Append($"Exception: {ex.Message} {ex.ToString()}");
                         OnError.Invoke(errorMessage.ToString());
                     });
                     throw initTask.Exception;
@@ -538,23 +538,46 @@ namespace Microsoft.MixedReality.WebRTC.Unity
 
         private void Signaler_LocalSdpReadyToSend(string type, string sdp)
         {
-            var message = new Signaler.Message
+            if (Signaler.SupportsRawMessages)
             {
-                MessageType = Signaler.Message.WireMessageTypeFromString(type),
-                Data = sdp
-            };
-            Signaler.SendMessageAsync(message);
+                switch (Signaler.Message.WireMessageTypeFromString(type))
+                {
+                    case Signaler.Message.WireMessageType.Offer:
+                        Signaler.OnSdpOfferReadyToSend(sdp);
+                        break;
+
+                    case Signaler.Message.WireMessageType.Answer:
+                        Signaler.OnSdpOfferReadyToSend(sdp);
+                        break;
+                }
+            }
+            else
+            {
+                var message = new Signaler.Message
+                {
+                    MessageType = Signaler.Message.WireMessageTypeFromString(type),
+                    Data = sdp
+                };
+                Signaler.SendMessageAsync(message);
+            }
         }
 
         private void Signaler_IceCandidateReadytoSend(string candidate, int sdpMlineindex, string sdpMid)
         {
-            var message = new Signaler.Message
+            if (Signaler.SupportsRawMessages)
             {
-                MessageType = Signaler.Message.WireMessageType.Ice,
-                Data = $"{candidate}|{sdpMlineindex}|{sdpMid}",
-                IceDataSeparator = "|"
-            };
-            Signaler.SendMessageAsync(message);
+                Signaler.OnIceCandiateReadyToSend(candidate, sdpMlineindex, sdpMid);
+            }
+            else
+            {
+                var message = new Signaler.Message
+                {
+                    MessageType = Signaler.Message.WireMessageType.Ice,
+                    Data = $"{candidate}|{sdpMlineindex}|{sdpMid}",
+                    IceDataSeparator = "|"
+                };
+                Signaler.SendMessageAsync(message);
+            }
         }
 
         private async void Signaler_OnMessage(Signaler.Message message)

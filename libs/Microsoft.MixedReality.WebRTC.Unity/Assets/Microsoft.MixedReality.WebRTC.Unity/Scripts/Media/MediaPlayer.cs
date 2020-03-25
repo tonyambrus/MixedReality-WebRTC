@@ -94,6 +94,8 @@ namespace Microsoft.MixedReality.WebRTC.Unity
             AudioSource?.AudioStreamStopped.AddListener(AudioStreamStopped);
             VideoSource?.VideoStreamStarted.AddListener(VideoStreamStarted);
             VideoSource?.VideoStreamStopped.AddListener(VideoStreamStopped);
+
+            VideoSource?.VideoStreamStarted.Invoke();
         }
 
         private void OnDestroy()
@@ -112,6 +114,7 @@ namespace Microsoft.MixedReality.WebRTC.Unity
         {
         }
 
+        [ContextMenu("Poke")]
         private void VideoStreamStarted()
         {
             FrameQueue = VideoSource.FrameQueue;
